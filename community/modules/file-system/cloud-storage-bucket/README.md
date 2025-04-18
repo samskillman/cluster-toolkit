@@ -2,6 +2,8 @@
 
 This module creates a [Google Cloud Storage (GCS) bucket](https://cloud.google.com/storage).
 
+> **_NOTE:_** Buckets created with this module can be mounted on Linux or macOS systems using [Cloud Storage Fuse](https://cloud.google.com/storage/docs/cloud-storage-fuse/overview). This allows you to access your bucket objects as if they were files in a local file system.
+
 For more information on this and other network storage options in the Cluster
 Toolkit, see the extended [Network Storage documentation](../../../../docs/network_storage.md).
 
@@ -29,6 +31,20 @@ where `xxxxxxxx` is a randomly generated id.
 > possible to have a bucket name clash with an existing bucket that is not in
 > your project. To resolve this try to use a more unique name, or set the
 > `random_suffix` variable to `true`.
+
+### Mounting a Pre-Existing Bucket
+
+The following example shows how to mount a GCS bucket using the `pre-existing-network-storage` module. This is useful if the bucket was created in a previous deployment (e.g., using this `cloud-storage-bucket` module) and you need to mount it in the current deployment. Note the use of `fs_type: gcsfuse`.
+
+```yaml
+- id: data-bucket
+  source: modules/file-system/pre-existing-network-storage
+  settings:
+    remote_mount: my-bucket-name # Replace with your actual bucket name
+    local_mount: /data
+    fs_type: gcsfuse
+    mount_options: defaults,_netdev,implicit_dirs
+```
 
 ## Naming of Bucket
 
@@ -59,8 +75,7 @@ the `random_suffix` will resolve the naming clash issue.
 
 ## Mounting
 
-To mount the Cloud Storage bucket you must first ensure that the GCS Fuse client
-has been installed and then call the proper `mount` command.
+To mount the Cloud Storage bucket, you typically use [Cloud Storage Fuse](https://cloud.google.com/storage/docs/cloud-storage-fuse/overview), which allows you to access your GCS buckets as a local file system. You must first ensure that the Cloud Storage Fuse client has been [installed](https://cloud.google.com/storage/docs/cloud-storage-fuse/install-fuse) and then call the proper `mount` command (often using `gcsfuse`).
 
 Both of these steps are automatically handled with the use of the `use` command
 in a selection of Cluster Toolkit modules. See the [compatibility matrix][matrix] in
