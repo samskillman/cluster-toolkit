@@ -2,7 +2,7 @@
 
 This module creates a [Google Cloud Storage (GCS) bucket](https://cloud.google.com/storage).
 
-> **_NOTE:_** Buckets created with this module can be mounted on Linux or macOS systems using [Cloud Storage Fuse](https://cloud.google.com/storage/docs/cloud-storage-fuse/overview). This allows you to access your bucket objects as if they were files in a local file system.
+> **_NOTE:_** Buckets created with this module can be mounted using [Cloud Storage Fuse](https://cloud.google.com/storage/docs/cloud-storage-fuse/overview). This allows you to access your bucket objects as if they were files in a local file system.
 
 For more information on this and other network storage options in the Cluster
 Toolkit, see the extended [Network Storage documentation](../../../../docs/network_storage.md).
