@@ -24,6 +24,8 @@ locals {
 
 
   no_reservation_affinity = { type : "NO_RESERVATION" }
+
+  partition_config_content = { for p in var.partitions : p.partition_name => yamlencode(p) }
 }
 
 # NODESET
@@ -159,11 +161,12 @@ module "nodeset_cleanup_tpu" {
 }
 
 resource "google_storage_bucket_object" "parition_config" {
-  for_each = { for p in var.partitions : p.partition_name => p }
+  for_each = local.partition_config_content
 
-  bucket  = module.slurm_files.bucket_name
-  name    = "${module.slurm_files.bucket_dir}/partition_configs/${each.key}.yaml"
-  content = yamlencode(each.value)
+  bucket         = module.slurm_files.bucket_name
+  name           = "${module.slurm_files.bucket_dir}/partition_configs/${each.key}.yaml"
+  content        = each.value
+  source_md5hash = md5(each.value)
 }
 
 moved {

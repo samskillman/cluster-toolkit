@@ -116,6 +116,12 @@ locals {
 
   output_dir  = can(coalesce(var.output_dir)) ? abspath(var.output_dir) : abspath(".")
   install_dir = can(coalesce(var.install_dir)) ? abspath(var.install_dir) : local.output_dir
+
+  nodeset_config_content = { for ns in var.nodeset : ns.nodeset_name => yamlencode(merge(ns, {
+    instance_properties = jsondecode(ns.instance_properties_json)
+  })) }
+  nodeset_dyn_config_content = { for ns in var.nodeset_dyn : ns.nodeset_name => yamlencode(ns) }
+  nodeset_tpu_config_content = { for n in var.nodeset_tpu[*].nodeset : n.nodeset_name => yamlencode(n) }
 }
 
 resource "google_storage_bucket_object" "config" {
@@ -137,29 +143,30 @@ resource "google_storage_bucket_object" "config" {
 }
 
 resource "google_storage_bucket_object" "nodeset_config" {
-  for_each = { for ns in var.nodeset : ns.nodeset_name => merge(ns, {
-    instance_properties = jsondecode(ns.instance_properties_json)
-  }) }
+  for_each = local.nodeset_config_content
 
-  bucket  = data.google_storage_bucket.this.name
-  name    = "${local.bucket_dir}/nodeset_configs/${each.key}.yaml"
-  content = yamlencode(each.value)
+  bucket         = data.google_storage_bucket.this.name
+  name           = "${local.bucket_dir}/nodeset_configs/${each.key}.yaml"
+  content        = each.value
+  source_md5hash = md5(each.value)
 }
 
 resource "google_storage_bucket_object" "nodeset_dyn_config" {
-  for_each = { for ns in var.nodeset_dyn : ns.nodeset_name => ns }
+  for_each = local.nodeset_dyn_config_content
 
-  bucket  = data.google_storage_bucket.this.name
-  name    = "${local.bucket_dir}/nodeset_dyn_configs/${each.key}.yaml"
-  content = yamlencode(each.value)
+  bucket         = data.google_storage_bucket.this.name
+  name           = "${local.bucket_dir}/nodeset_dyn_configs/${each.key}.yaml"
+  content        = each.value
+  source_md5hash = md5(each.value)
 }
 
 resource "google_storage_bucket_object" "nodeset_tpu_config" {
-  for_each = { for n in var.nodeset_tpu[*].nodeset : n.nodeset_name => n }
+  for_each = local.nodeset_tpu_config_content
 
-  bucket  = data.google_storage_bucket.this.name
-  name    = "${local.bucket_dir}/nodeset_tpu_configs/${each.key}.yaml"
-  content = yamlencode(each.value)
+  bucket         = data.google_storage_bucket.this.name
+  name           = "${local.bucket_dir}/nodeset_tpu_configs/${each.key}.yaml"
+  content        = each.value
+  source_md5hash = md5(each.value)
 }
 
 #########
