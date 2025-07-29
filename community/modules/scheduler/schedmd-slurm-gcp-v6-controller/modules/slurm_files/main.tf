@@ -121,7 +121,7 @@ locals {
 resource "google_storage_bucket_object" "config" {
   bucket  = data.google_storage_bucket.this.name
   name    = "${local.bucket_dir}/config.yaml"
-  content = yamlencode(local.config)
+  content = templatefile("${path.module}/templates/config.yaml.tpl", local.config)
 
   # Take dependency on all other "config artifacts" so creation of `config.yaml`
   # can be used as a signal for setup.py that "everything is ready".
@@ -143,7 +143,10 @@ resource "google_storage_bucket_object" "nodeset_config" {
 
   bucket  = data.google_storage_bucket.this.name
   name    = "${local.bucket_dir}/nodeset_configs/${each.key}.yaml"
-  content = yamlencode(each.value)
+  content = templatefile(
+    "${path.module}/templates/nodeset_config.yaml.tpl",
+    { "nodeset" = each.value }
+  )
 }
 
 resource "google_storage_bucket_object" "nodeset_dyn_config" {
@@ -151,7 +154,10 @@ resource "google_storage_bucket_object" "nodeset_dyn_config" {
 
   bucket  = data.google_storage_bucket.this.name
   name    = "${local.bucket_dir}/nodeset_dyn_configs/${each.key}.yaml"
-  content = yamlencode(each.value)
+  content = templatefile(
+    "${path.module}/templates/nodeset_dyn_config.yaml.tpl",
+    { "nodeset" = each.value }
+  )
 }
 
 resource "google_storage_bucket_object" "nodeset_tpu_config" {
@@ -159,7 +165,10 @@ resource "google_storage_bucket_object" "nodeset_tpu_config" {
 
   bucket  = data.google_storage_bucket.this.name
   name    = "${local.bucket_dir}/nodeset_tpu_configs/${each.key}.yaml"
-  content = yamlencode(each.value)
+  content = templatefile(
+    "${path.module}/templates/nodeset_tpu_config.yaml.tpl",
+    { "nodeset" = each.value }
+  )
 }
 
 #########
