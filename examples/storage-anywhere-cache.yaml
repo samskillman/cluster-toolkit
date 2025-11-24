@@ -21,25 +21,23 @@ vars:
   deployment_name: anywhere-cache-example
   region: us-central1
   zone: us-central1-a
-  bucket_name: my-cache-bucket
 
 deployment_groups:
 - group: primary
   modules:
-  # Reference a terraform provider directly using the "terraform" kind and a registry module
+  # Use the community cloud-storage-bucket module to create the bucket
   - id: bucket
-    source: github.com/terraform-google-modules/terraform-google-cloud-storage//modules/simple_bucket?ref=v5.0.0
-    kind: terraform
+    source: community/modules/file-system/cloud-storage-bucket
     settings:
-      name: $(vars.bucket_name)
-      project_id: $(vars.project_id)
-      location: $(vars.region)
+      local_mount: /mnt/gcs
+      random_suffix: true
+      force_destroy: true
 
   # Use the Cluster Toolkit module for storage-anywhere-cache
   - id: cache
     source: community/modules/file-system/storage-anywhere-cache
     use: [bucket]
     settings:
-      bucket: $(bucket.name)
+      bucket: $(bucket.gcs_bucket_name)
       zone: $(vars.zone)
       ttl: "3600s"
